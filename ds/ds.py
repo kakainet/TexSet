@@ -13,29 +13,29 @@ def color_expr(expr):
 def color_expr(expr, c):
     return '\color{{ {0} }}{{ {1} }}'.format(c, expr)
 
-def randbool():
-    return bool(random.getrandbits(1))
+def randbool(f):
+    return random.randint(0,100) < f * 100
 
 def atom():
-    if randbool():
+    if randbool(0.5):
         return f'{random.choice(symbols)}{random.choice(letters)}'
     else:
         return f'{random.choice(symbols)}'
 
 
 def single(depth):
-    if depth == 1:
+    if randbool(0.3) or depth == 1:
         return atom()
     return random.choice(op).format(single(depth-1), single(depth-1))
 
 def sample(k, d):
     l = []
     for _ in range(k):
-        c1, c2 = random.sample(colors ,2)
-        l.append(f'{color_expr(single(d), c1)}+{color_expr(single(d), c2)}')
+        c1, c2 = 'brown','blue'
+        l.append(random.choice(binary).format(color_expr(single(d), c1), color_expr(single(d), c2)))
     return l
 
 
 if __name__ == "__main__":
-    for expr in sample(20, 3):
+    for expr in sample(20, 5):
         print('$$ '+expr + ' $$')
