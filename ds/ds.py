@@ -31,7 +31,7 @@ def single(depth):
 def sample(k, d):
     l = []
     for _ in range(k):
-        c1, c2 = 'brown','blue'
+        c1, c2 = 'red','blue'
         l.append(random.choice(binary).format(color_expr(single(d), c1), color_expr(single(d), c2)))
     return l
 
