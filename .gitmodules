@@ -1,0 +1,3 @@
+[submodule "dataset/ImageToLatex"]
+	path = dataset/ImageToLatex
+	url = https://github.com/kakainet/ImageToLatex
