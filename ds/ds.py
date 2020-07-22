@@ -1,5 +1,7 @@
 import random
 import string
+import argparse
+
 colors = ['Apricot', 'Aquamarine', 'Bittersweet','Black','Blue','BlueGreen', 'BlueViolet', 'BrickRed', 'Brown','BurntOrange', 'CadetBlue' ,'CarnationPink', 'Cerulean','CornflowerBlue', 'Cyan', 'Dandelion', 'DarkOrchid', 'Emerald','ForestGreen','Fuchsia', 'Goldenrod','Gray','Green','GreenYellow','JungleGreen','Lavender','LimeGreen','Magenta', 'Maroon', 'Melon', 'MidnightBlue', 'Mulberry','NavyBlue', 'OliveGreen', 'Orange' ,'OrangeRed', 'Orchid', 'Peach'	,'Periwinkle' ,'PineGreen','Plum', 'ProcessBlue', 'Purple', 'RawSienna', 'Red', 'RedOrange', 'RedViolet', 'Rhodamine','RoyalBlue','RoyalPurple','RubineRed','Salmon','SeaGreen','Sepia','SkyBlue','SpringGreen','Tan','TealBlue','Thistle','Turquoise','Violet','VioletRed','WildStrawberry','Yellow','YellowGreen','YellowOrange']
 
 binary = [R'\frac{{ {0} }}{{ {1} }}', '{0}+{1}', '{0}-{1}', R'{0} \cdot {1}']
@@ -22,7 +24,6 @@ def atom():
     else:
         return f'{random.choice(symbols)}'
 
-
 def single(depth):
     if randbool(0.3) or depth == 1:
         return atom()
@@ -32,10 +33,13 @@ def sample(k, d):
     l = []
     for _ in range(k):
         c1, c2 = 'red','blue'
-        l.append(random.choice(binary).format(color_expr(single(d), c1), color_expr(single(d), c2)))
-    return l
-
+        yield random.choice(binary).format(color_expr(single(d), c1), color_expr(single(d), c2))
 
 if __name__ == "__main__":
-    for expr in sample(20, 5):
-        print('$$ '+expr + ' $$')
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--samples', help='number of samples', required=True, type=int)
+    parser.add_argument('--max_depth', help='max allowed depth of LaTeX tree', required=True, type=int)
+    args = parser.parse_args()
+
+    for expr in sample(args.samples, args.max_depth):
+        print(expr)

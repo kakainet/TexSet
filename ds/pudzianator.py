@@ -37,22 +37,14 @@ def process_img(in_dir, out_dir, name):
     for k, c in enumerate(cnts):
         x,y,w,h = cv2.boundingRect(c)
         subimg = image[y:y+h, x:x+w]
-        #cv2.imwrite(f'image{k}.png', subimg)
         c = avgcolor(subimg)
         hashcode = sum([(c[j] > 220) * (2**j) for j in range(3)])
         boxes[hashcode].append([x,y,x+w,y+h])
-        #print(k, c)
-        #color = list(np.random.random(size=3) * 256)
-        #cv2.rectangle(image, (x, y), (x + w, y + h), color, 4)
-    print(boxes)
+
     for k in boxes.keys():
         if not boxes[k]:
             continue
         m = 0
-        print('xxx')
-        print(boxes[k])
-        print(np.array(boxes[k]).transpose())
-        #exit(0)
 
         perchannel = np.array(boxes[k]).transpose()
         xmin, ymin = np.min(perchannel[0]),np.min(perchannel[1])
@@ -66,15 +58,11 @@ def process_img(in_dir, out_dir, name):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--in_dir', help='input directory', required=True)
-    parser.add_argument('--out_dir', help='output directory', required=True)
-    args = parser.parse_args()
+    parser.add_argument('--in_dir', help='input directory', required=True, type=str)
+    parser.add_argument('--out_dir', help='output directory', required=True, type=str)
     args = parser.parse_args()
     input_names = os.listdir(args.in_dir)
 
     for name in input_names:
         process_img(args.in_dir, args.out_dir, name)
-
-
-
 
