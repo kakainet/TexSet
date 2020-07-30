@@ -1,0 +1,3 @@
+[submodule "dataset/latex2image"]
+	path = dataset/latex2image
+	url = https://github.com/mvxxx/latex2image
