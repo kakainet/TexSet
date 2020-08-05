@@ -81,4 +81,3 @@ if __name__ == "__main__":
     else:
         with open(args.save, 'r+') as savefile:
             savefile.write(json_output)
-

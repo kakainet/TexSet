@@ -19,6 +19,7 @@ symbols = string.digits+letters
 def color_expr(expr, c):
     return '{{\color[rgb]{{ {0} }} {1} }}'.format(c, expr)
 
+
 def randbool(f):
     return random.randint(0,100) < f * 100
 
