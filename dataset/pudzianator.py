@@ -79,5 +79,5 @@ if __name__ == "__main__":
     if not args.save:
         print(json_output)
     else:
-        with open(args.save, 'r+') as savefile:
+        with open(args.save, 'w+') as savefile:
             savefile.write(json_output)
