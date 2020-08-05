@@ -2,9 +2,16 @@ import cv2
 import numpy as np
 import argparse
 import os
+import json
 
 def iswhite(p):
     return p[0] > 180 and p[1] > 180 and p[2] > 180
+
+def convert(o):
+    if isinstance(o, np.int64): 
+        return int(o)  
+    else:
+        return o
 
 def avgcolor(img):
     sum = [0,0,0]
@@ -22,8 +29,6 @@ def avgcolor(img):
     if ctr == 0:
         return [0,0,0]
     return [sum[j]/ctr for j in range(3)]
-
-
 
 def process_img(in_dir, out_dir, name):
     print(f'Processing {name}...')
@@ -49,7 +54,7 @@ def process_img(in_dir, out_dir, name):
         perchannel = np.array(boxes[k]).transpose()
         xmin, ymin = np.min(perchannel[0]),np.min(perchannel[1])
         xmaks, ymaks = np.max(perchannel[2]),np.max(perchannel[3]) 
-        print(xmin,ymin,xmaks,ymaks)
+        annotations.append({'name': name, 'bbox': [xmaks, ymaks, xmaks-xmin, ymaks-ymin]})
         color = list(np.random.random(size=3) * 256)
         cv2.rectangle(image, (xmin, ymin), (xmaks, ymaks), color, 1)
 
@@ -60,9 +65,19 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--in_dir', help='input directory', required=True, type=str)
     parser.add_argument('--out_dir', help='output directory', required=True, type=str)
+    parser.add_argument('--save', help='save file', required=False, type=str)
+
     args = parser.parse_args()
     input_names = os.listdir(args.in_dir)
+    
+    annotations = []
 
     for name in input_names:
         process_img(args.in_dir, args.out_dir, name)
-
+    json_output = json.dumps(annotations, default=convert)
+    
+    if not args.save:
+        print(json_output)
+    else:
+        with open(args.save, 'r+') as savefile:
+            savefile.write(json_output)
