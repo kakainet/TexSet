@@ -18,6 +18,11 @@ def dump_func_name(func):
         return func(*func_args, **func_kwargs)
     return echo_func
 
+@dump_func_name
+def clean_old():
+    shutil.rmtree(result_dir)
+    os.mkdir(result_dir)
+
 @dump_func_name    
 def load_config():
     with open(args.config, 'r+') as json_config:
@@ -54,8 +59,10 @@ def generate_bbox():
     shutil.move('output_color', os.path.join(owd, result_dir)) 
     shutil.move('output_black', os.path.join(owd, result_dir))
     shutil.move('itl_labels.txt', os.path.join(owd, result_dir))
-
+    
     os.chdir(owd)
+
+    subprocess.run(['python3', 'dataset/pudzianator.py', '--in-dir', os.path.join(result_dir, 'output_color'), '--out-dir', os.path.join(result_dir, 'output_bbox'), '--save', os.path.join(result_dir, 'annotations.json')])
 
 
 if __name__ == "__main__":
@@ -73,6 +80,7 @@ if __name__ == "__main__":
     output_cp_files = [open(os.path.join('dataset/latex2image/src', f'input{j}.in.black'), 'w+') for j in range(cfg['parts'])]
     read_files = [open(os.path.join('dataset/latex2image/src', f'input{j}.in'), 'r') for j in range(cfg['parts'])]
 
+    clean_old()
     generate_inputs()
     copy_black_inputs()
     generate_images()
