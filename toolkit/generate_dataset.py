@@ -3,6 +3,14 @@ import argparse
 import json
 import shutil
 import os
+import glob
+import signal
+import sys
+
+def signal_handler(sig, frame):
+    print('Aborted')
+    os.chdir(owd)
+    sys.exit(0)
 
 def dump_func_name(func):
     def echo_func(*func_args, **func_kwargs):
@@ -29,25 +37,25 @@ def copy_black_inputs():
 @dump_func_name  
 def generate_images():
     os.chdir('dataset/latex2image/src')
-    subprocess.run(["bash", "set.sh", "*.in"])
-    shutil.movetree
-    pass
-
-@dump_func_name  
-def prepare_output():
-    pass
+    colorfull = glob.glob('*.in') 
+    print(colorfull)
+    subprocess.run(['bash', 'set.sh', *colorfull])
 
 if __name__ == "__main__":
+    signal.signal(signal.SIGINT, signal_handler)
+
     parser = argparse.ArgumentParser()
     parser.add_argument('--config', help='config file', required=True, type=str)
     args = parser.parse_args()
-
+    owd = os.getcwd()
     cfg = load_config()
 
     output_files = [open(os.path.join('dataset/latex2image/src', f'input{j}.in'), 'w+') for j in range(cfg['parts'])]
-    output_cp_files = [open(os.path.join('dataset/latex2image/src', f'input{j}.black.in'), 'w+') for j in range(cfg['parts'])]
+    output_cp_files = [open(os.path.join('dataset/latex2image/src', f'input{j}.in.black'), 'w+') for j in range(cfg['parts'])]
     read_files = [open(os.path.join('dataset/latex2image/src', f'input{j}.in'), 'r') for j in range(cfg['parts'])]
 
     generate_inputs()
     copy_black_inputs()
     generate_images()
+
+    os.chdir(owd)
