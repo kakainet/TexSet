@@ -20,7 +20,8 @@ def dump_func_name(func):
 
 @dump_func_name
 def clean_old():
-    shutil.rmtree(result_dir)
+    if os.path.isdir(result_dir):
+        shutil.rmtree(result_dir)
     os.mkdir(result_dir)
 
 @dump_func_name    
@@ -30,15 +31,11 @@ def load_config():
 
 @dump_func_name  
 def generate_inputs():
-    for f in output_files:
-        subprocess.run(["python3", "dataset/ds.py", "--max_depth", str(cfg['max-depth']), "--samples", str(cfg["samples-in-part"])], stdout=f) 
+    for j in range(len(output_files)):
+        black_f = output_cp_files[j]
+        color_f = output_files[j]
+        subprocess.run(["python3", "dataset/ds.py", "--max_depth", str(cfg['max-depth']), "--samples", str(cfg["samples-in-part"])], stdout=color_f, stderr=black_f) 
         
-@dump_func_name  
-def copy_black_inputs():
-    for j in range(cfg['parts']):
-        output_cp_files[j].write(read_files[j].read().replace('0,0,1', '0,0,0').replace('1,0,0', '0,0,0'))
-    for j in range(cfg['parts']):
-        output_cp_files[j].close()
 
 @dump_func_name  
 def generate_images():
@@ -47,10 +44,10 @@ def generate_images():
     black = glob.glob('*.in.black')
     subprocess.run(['bash', 'set.sh', *colorfull])
     os.rename('output','output_color')
-    os.rename('labels.txt', 'itl_labels.txt')
+    os.remove('labels.txt')
     subprocess.run(['bash', 'set.sh', *black])
     os.rename('output','output_black')
-    os.remove('labels.txt')
+    os.rename('labels.txt', 'itl_labels.txt')
     for f in black+colorfull:
         os.remove(f)
 
@@ -63,6 +60,15 @@ def generate_bbox():
     os.chdir(owd)
 
     subprocess.run(['python3', 'dataset/pudzianator.py', '--in-dir', os.path.join(result_dir, 'output_color'), '--out-dir', os.path.join(result_dir, 'output_bbox'), '--save', os.path.join(result_dir, 'annotations.json')])
+
+def remove_colors(label):
+    line = line[COLOR_CHARS:]
+    idx = line.find(R'{\color')
+    l,r = line[:idx], line[idx:]
+    r = r[:-1]
+    op_idx = l.rfind( '\\' )
+    l = l[:l.rfind( '\\' )]
+    return l+r
 
 
 if __name__ == "__main__":
@@ -82,6 +88,7 @@ if __name__ == "__main__":
 
     clean_old()
     generate_inputs()
-    copy_black_inputs()
     generate_images()
     generate_bbox()
+
+    os.chdir(owd)
