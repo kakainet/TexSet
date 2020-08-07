@@ -56,7 +56,7 @@ def process_img(in_dir, out_dir, name):
         bboxes.append([xmaks, ymaks, xmaks-xmin, ymaks-ymin])
         color = list(np.random.random(size=3) * 256)
         cv2.rectangle(image, (xmin, ymin), (xmaks, ymaks), color, 1)
-    annotations.append({'name': name, 'bbox': bboxes})
+    annotations.append({'name': name, 'op': bboxes[0], 'exprs': sorted(bboxes[1:])})
 
     cv2.imwrite(os.path.join(out_dir, name), image)
 
