@@ -59,7 +59,7 @@ def generate_bbox():
     
     os.chdir(owd)
 
-    subprocess.run(['python3', 'dataset/pudzianator.py', '--in-dir', os.path.join(result_dir, 'output_color'), '--out-dir', os.path.join(result_dir, 'output_bbox'), '--save', os.path.join(result_dir, 'annotations.json')])
+    subprocess.run(['python3', 'dataset/bbox_gen.py', '--in-dir', os.path.join(result_dir, 'output_color'), '--out-dir', os.path.join(result_dir, 'output_bbox'), '--save', os.path.join(result_dir, 'annotations.json')])
 
 def remove_colors(label):
     line = line[COLOR_CHARS:]
