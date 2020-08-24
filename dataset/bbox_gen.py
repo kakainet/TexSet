@@ -53,7 +53,7 @@ def process_img(in_dir, out_dir, name):
         perchannel = np.array(boxes[k]).transpose()
         xmin, ymin = np.min(perchannel[0]),np.min(perchannel[1])
         xmaks, ymaks = np.max(perchannel[2]),np.max(perchannel[3]) 
-        bboxes.append([xmaks, ymaks, xmaks-xmin, ymaks-ymin])
+        bboxes.append([xmin, ymin, xmaks-xmin, ymaks-ymin])
         color = list(np.random.random(size=3) * 256)
         cv2.rectangle(image, (xmin, ymin), (xmaks, ymaks), color, 1)
     annotations.append({'name': name, 'op': bboxes[0], 'exprs': sorted(bboxes[1:])})

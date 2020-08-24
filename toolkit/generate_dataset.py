@@ -84,7 +84,6 @@ if __name__ == "__main__":
 
     output_files = [open(os.path.join('dataset/latex2image/src', f'input{j}.in'), 'w+') for j in range(cfg['parts'])]
     output_cp_files = [open(os.path.join('dataset/latex2image/src', f'input{j}.in.black'), 'w+') for j in range(cfg['parts'])]
-    read_files = [open(os.path.join('dataset/latex2image/src', f'input{j}.in'), 'r') for j in range(cfg['parts'])]
 
     clean_old()
     generate_inputs()
