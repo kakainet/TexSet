@@ -78,5 +78,5 @@ if __name__ == "__main__":
 
     transform_dataset(FLAGS.input_dir, FLAGS.output_dir, FLAGS.dim)
 
-    with open(os.path.join(annotpath, annotfilename+'.tmp'), 'w+') as output:
+    with open(os.path.join(annotpath, annotfilename), 'w+') as output:
         output.write(json.dumps(annotjson))
