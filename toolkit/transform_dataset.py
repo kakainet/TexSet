@@ -10,10 +10,14 @@ def sort_annotations(jsonsource):
 
     return sorted(jsonsource, cmp=compare)
 
+def update_by_ratio(annotjson, idx, ratio):
+    annotjson[idx]['op'] = [x * ratio for x in annotjson[idx]['op']]
+    annotjson[idx]['exprs'] = [[x * ratio for x in coords] for coords in annotjson[idx]['exprs']]
+
 
 def transform_dataset(input, output, dim):
     new_annots = []
-
+    idx=0
     for img_entry in os.scandir(input):
         if not os.path.isfile(img_entry.path):
             continue
@@ -23,6 +27,7 @@ def transform_dataset(input, output, dim):
         max_dim = max(height, width)
         ratio = dim/max_dim
         dsize = (round(width*ratio), round(height*ratio))
+        
         img = cv2.resize(img, dsize)
         assert(dim in img.shape)
         h, w, _ = img.shape
@@ -38,7 +43,7 @@ def transform_dataset(input, output, dim):
             img = np.vstack([strip, img])
 
         cv2.imwrite(os.path.join(output, img_entry.name), cv2.resize(img, (dim, dim)))
-
+        idx+=1
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
