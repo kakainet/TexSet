@@ -2,21 +2,30 @@ import cv2
 import argparse
 import os
 import numpy as np
+import json
 
 def sort_annotations(jsonsource):
-    def compare(entry1, entry2):
+    def compare(entry):
         get_idx = lambda entry : int(entry['name'][len('eq'):entry['name'].find('.')])
-        return get_idx(entry1) - get_idx(entry2)
+        return get_idx(entry)
 
-    return sorted(jsonsource, cmp=compare)
+    return sorted(jsonsource, key=compare)
 
 def update_by_ratio(annotjson, idx, ratio):
-    annotjson[idx]['op'] = [x * ratio for x in annotjson[idx]['op']]
-    annotjson[idx]['exprs'] = [[x * ratio for x in coords] for coords in annotjson[idx]['exprs']]
+    annotjson[idx]['op'] = [int(x * ratio) for x in annotjson[idx]['op']]
+    annotjson[idx]['exprs'] = [[int(x * ratio) for x in coords] for coords in annotjson[idx]['exprs']]
+
+def update_by_shift(annotjson, idx, shift, vertical):
+    if vertical:
+        annotjson[idx]['op'] = [int(x  + shift * (i % 2 == 1)) for i, x in enumerate(annotjson[idx]['op'])]
+        annotjson[idx]['exprs'] = [[(x  + shift * (i%2 == 1)) for i, x in enumerate(coords)] for coords in annotjson[idx]['exprs']]
+    else:
+        annotjson[idx]['op'] = [int(x  + shift * (i % 2 == 0)) for i, x in enumerate(annotjson[idx]['op'])]
+        annotjson[idx]['exprs'] = [[int(x  + shift * (i%2 == 0)) for i, x in enumerate(coords)] for coords in annotjson[idx]['exprs']]
 
 
 def transform_dataset(input, output, dim):
-    new_annots = []
+    print('start', annotjson)
     idx=0
     for img_entry in os.scandir(input):
         if not os.path.isfile(img_entry.path):
@@ -27,7 +36,7 @@ def transform_dataset(input, output, dim):
         max_dim = max(height, width)
         ratio = dim/max_dim
         dsize = (round(width*ratio), round(height*ratio))
-        
+        update_by_ratio(annotjson, idx, ratio)        
         img = cv2.resize(img, dsize)
         assert(dim in img.shape)
         h, w, _ = img.shape
@@ -37,13 +46,16 @@ def transform_dataset(input, output, dim):
             strip = 255 * np.ones(shape=[dim, shift, channels], dtype=np.uint8)
             img = np.hstack([img, strip])
             img = np.hstack([strip, img])
+            update_by_shift(annotjson, idx, shift, False)
         elif w > h:
             strip = 255 * np.ones(shape=[shift, dim, channels], dtype=np.uint8)
             img = np.vstack([img, strip])
             img = np.vstack([strip, img])
+            update_by_shift(annotjson, idx, shift, True)
 
         cv2.imwrite(os.path.join(output, img_entry.name), cv2.resize(img, (dim, dim)))
         idx+=1
+    print('end', annotjson)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -57,7 +69,7 @@ if __name__ == "__main__":
     annotpath, annotfilename = os.path.split(os.path.abspath(annotations))
 
     with open(annotations, 'r') as annotfile:
-        annotjson = json.loads(annotfile)
+        annotjson = json.loads(annotfile.read())
 
     annotjson = sort_annotations(annotjson)
 
