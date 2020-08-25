@@ -17,11 +17,11 @@ def update_by_ratio(annotjson, idx, ratio):
 
 def update_by_shift(annotjson, idx, shift, vertical):
     if vertical:
-        annotjson[idx]['op'] = [int(x  + shift * (i % 2 == 1)) for i, x in enumerate(annotjson[idx]['op'])]
-        annotjson[idx]['exprs'] = [[(x  + shift * (i%2 == 1)) for i, x in enumerate(coords)] for coords in annotjson[idx]['exprs']]
+        annotjson[idx]['op'] = [int(x  + shift * (i % 2 == 1 and i < 2)) for i, x in enumerate(annotjson[idx]['op'])]
+        annotjson[idx]['exprs'] = [[(x  + shift * (i%2 == 1 and i < 2)) for i, x in enumerate(coords)] for coords in annotjson[idx]['exprs']]
     else:
-        annotjson[idx]['op'] = [int(x  + shift * (i % 2 == 0)) for i, x in enumerate(annotjson[idx]['op'])]
-        annotjson[idx]['exprs'] = [[int(x  + shift * (i%2 == 0)) for i, x in enumerate(coords)] for coords in annotjson[idx]['exprs']]
+        annotjson[idx]['op'] = [int(x  + shift * (i % 2 == 0 and i < 2)) for i, x in enumerate(annotjson[idx]['op'])]
+        annotjson[idx]['exprs'] = [[int(x  + shift * (i%2 == 0 and i < 2)) for i, x in enumerate(coords)] for coords in annotjson[idx]['exprs']]
 
 
 def transform_dataset(input, output, dim):
@@ -79,4 +79,4 @@ if __name__ == "__main__":
     transform_dataset(FLAGS.input_dir, FLAGS.output_dir, FLAGS.dim)
 
     with open(os.path.join(annotpath, annotfilename+'.tmp'), 'w+') as output:
-        output.write(json.dump(annotjson))
+        output.write(json.dumps(annotjson))
