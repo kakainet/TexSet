@@ -35,7 +35,7 @@ def update_by_shift(annotjson, idx, shift, vertical):
 
 def transform_dataset(input, output, dim):
     idx = 0
-    for img_entry in os.scandir(input):
+    for img_entry in sorted(os.scandir(input), key=lambda filenetry: int(filenetry.path.split('/')[-1][len('eq'):-len('.png')])):
         if not os.path.isfile(img_entry.path):
             continue
         img = cv2.imread(img_entry.path, cv2.IMREAD_COLOR)
@@ -50,6 +50,7 @@ def transform_dataset(input, output, dim):
         h, w, _ = img.shape
         delta = abs(w-h)
         shift = round(delta/2)
+
         if h > w:
             strip = 255 * np.ones(shape=[dim, shift, channels], dtype=np.uint8)
             img = np.hstack([img, strip])
@@ -63,6 +64,7 @@ def transform_dataset(input, output, dim):
 
         cv2.imwrite(os.path.join(output, img_entry.name),
                     cv2.resize(img, (dim, dim)))
+        
         idx += 1
 
 
