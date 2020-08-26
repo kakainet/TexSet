@@ -47,7 +47,7 @@ def generate_inputs():
 def generate_images():
     os.chdir('dataset/latex2image/src')
     colorfull = glob.glob('*.in')
-    black = glob.glob('*.in.black')
+    black = list(map(lambda x: x+'.black', colorfull))
     subprocess.run(['bash', 'set.sh', *colorfull])
     os.rename('output', 'output_color')
     os.remove('labels.txt')
