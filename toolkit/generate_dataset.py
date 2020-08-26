@@ -18,6 +18,7 @@ def dump_func_name(func):
     def echo_func(*func_args, **func_kwargs):
         print('Start func: {}'.format(func.__name__))
         return func(*func_args, **func_kwargs)
+
     return echo_func
 
 
@@ -39,8 +40,10 @@ def generate_inputs():
     for j in range(len(output_files)):
         black_f = output_cp_files[j]
         color_f = output_files[j]
-        subprocess.run(["python3", "dataset/ds.py", "--max_depth", str(cfg['max-depth']),
-                        "--samples", str(cfg["samples-in-part"])], stdout=color_f, stderr=black_f)
+        subprocess.run(
+            ["python3", "dataset/ds.py", "--max_depth", str(cfg['max-depth']),
+             "--samples", str(cfg["samples-in-part"])], stdout=color_f,
+            stderr=black_f)
 
 
 @dump_func_name
@@ -54,7 +57,7 @@ def generate_images():
     subprocess.run(['bash', 'set.sh', *black])
     os.rename('output', 'output_black')
     os.rename('labels.txt', 'itl_labels.txt')
-    for f in black+colorfull:
+    for f in black + colorfull:
         os.remove(f)
 
 
@@ -66,24 +69,18 @@ def generate_bbox():
 
     os.chdir(owd)
 
-    subprocess.run(['python3', 'dataset/bbox_gen.py', '--in-dir', os.path.join(result_dir, 'output_color'),
-                    '--out-dir', os.path.join(result_dir, 'output_bbox'), '--save', os.path.join(result_dir, 'annotations.json')])
+    subprocess.run(['python3', 'dataset/bbox_gen.py',
+                    '--in-dir', os.path.join(result_dir, 'output_color'),
+                    '--out-dir', os.path.join(result_dir, 'output_bbox'),
+                    '--save', os.path.join(result_dir, 'annotations.json')])
 
 
 @dump_func_name
 def transform_bbox():
-    subprocess.run(['python3', 'toolkit/transform_dataset.py', '--input-dir', 'output/output_black',
-                    '--dim', '224', '--annotations', 'output/annotations.json', '--output-dir', 'output/output_proper'])
-
-
-def remove_colors(label):
-    line = line[COLOR_CHARS:]
-    idx = line.find(R'{\color')
-    l, r = line[:idx], line[idx:]
-    r = r[:-1]
-    op_idx = l.rfind('\\')
-    l = l[:l.rfind('\\')]
-    return l+r
+    subprocess.run(['python3', 'toolkit/transform_dataset.py', '--input-dir',
+                    'output/output_black',
+                    '--dim', '224', '--annotations', 'output/annotations.json',
+                    '--output-dir', 'output/output_proper'])
 
 
 if __name__ == "__main__":
@@ -99,9 +96,11 @@ if __name__ == "__main__":
     result_dir = 'output'
 
     output_files = [open(os.path.join(
-        'dataset/latex2image/src', f'input{j}.in'), 'w+') for j in range(cfg['parts'])]
+        'dataset/latex2image/src', f'input{j}.in'), 'w+') for j in
+        range(cfg['parts'])]
     output_cp_files = [open(os.path.join(
-        'dataset/latex2image/src', f'input{j}.in.black'), 'w+') for j in range(cfg['parts'])]
+        'dataset/latex2image/src', f'input{j}.in.black'), 'w+') for j in
+        range(cfg['parts'])]
 
     clean_old()
     generate_inputs()
