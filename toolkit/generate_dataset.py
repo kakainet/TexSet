@@ -7,6 +7,8 @@ import glob
 import signal
 import sys
 
+ops_cfg_path = "config/operators.json"
+
 
 def signal_handler(sig, frame):
     print('Aborted')
@@ -41,8 +43,11 @@ def generate_inputs():
         black_f = output_cp_files[j]
         color_f = output_files[j]
         subprocess.run(
-            ["python3", "dataset/ds.py", "--max_depth", str(cfg['max-depth']),
-             "--samples", str(cfg["samples-in-part"])], stdout=color_f,
+            ["python3", "dataset/ds.py", f"--ops_cfg={ops_cfg_path}",
+             "--max_depth", str(cfg['max-depth']),
+             "--samples", str(cfg["samples-in-part"]),
+             f"--ops_path=dataset/latex2image/src/input{j}.in.ops"],
+            stdout=color_f,
             stderr=black_f)
 
 
@@ -57,6 +62,7 @@ def generate_images():
     subprocess.run(['bash', 'set.sh', *black])
     os.rename('output', 'output_black')
     os.rename('labels.txt', 'itl_labels.txt')
+    # TODO: what to do with .ops files, to make them input for annotations?
     for f in black + colorfull:
         os.remove(f)
 

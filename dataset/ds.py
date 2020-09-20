@@ -78,6 +78,7 @@ class ExprSampler:
     def sample(self, k, d):
         for _ in range(k):
             c1, c2 = '1,0,0', '0,0,1'
+            # TODO: allow also unary ops (coloring for them)
             s1, s2 = self.single(
                 d, forbidden_ops=self._ops.inline_binary()), self.single(d)
             bop = random.choice(tuple(self._ops.binary()))
