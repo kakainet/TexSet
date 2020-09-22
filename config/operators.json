@@ -1,0 +1,45 @@
+{
+  "add": {
+    "latex": "{0}+{1}",
+    "operands": 2,
+    "inline": true
+  },
+  "sub": {
+    "latex": "{0}-{1}",
+    "operands": 2,
+    "inline": true
+  },
+  "mul": {
+    "latex": "{0} \\cdot {1}",
+    "operands": 2,
+    "inline": true
+  },
+  "frac": {
+    "latex": "\\frac{{ {0} }}{{ {1} }}",
+    "operands": 2
+  },
+  "sqrt": {
+    "latex": "\\sqrt{{ {0} }}",
+    "operands": 1
+  },
+  "int": {
+    "latex": "\\int {0}",
+    "operands": 1
+  },
+  "par": {
+    "latex": "\\left({0}\\right)",
+    "operands": 1
+  },
+  "fpar": {
+    "latex": "f\\left({0}\\right)",
+    "operands": 1
+  },
+  "ffpar": {
+    "latex": "F\\left({0}\\right)",
+    "operands": 1
+  },
+  "gpar": {
+    "latex": "G\\left({0}\\right)",
+    "operands": 1
+  }
+}
