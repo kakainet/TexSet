@@ -89,16 +89,22 @@ class ExprSampler:
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--ops_cfg', help='operators JSON config',
+    parser.add_argument('--ops-cfg', help='operators JSON config',
                         required=True, type=str)
     parser.add_argument('--samples', help='number of samples', required=True,
                         type=int)
-    parser.add_argument('--max_depth', help='max allowed depth of LaTeX tree',
+    parser.add_argument('--max-depth', help='max allowed depth of LaTeX tree',
                         required=True, type=int)
-    parser.add_argument('--ops_path', help='optional operator labels path',
+    parser.add_argument('--op-path', help='optional operator labels save path',
+                        required=False, type=str)
+    parser.add_argument('--expr-path', help='optional expression save path',
+                        required=False, type=str)
+    parser.add_argument('--color-path', help='optional colors save path',
                         required=False, type=str)
 
     cmd_args = parser.parse_args()
+
+    
 
     with open(cmd_args.ops_cfg, 'r') as ops_cfg_file:
         ops_config = json.load(ops_cfg_file)
@@ -107,12 +113,22 @@ if __name__ == '__main__':
     sampler = ExprSampler(operators)
 
     opcode_labels = []
-    for expr, expr_no_color, opcode in sampler.sample(cmd_args.samples,
-                                                      cmd_args.max_depth):
-        print(expr)
-        eprint(expr_no_color)
-        opcode_labels.append(opcode)
 
-    if cmd_args.ops_path:
-        with open(cmd_args.ops_path, 'w') as ops_file:
-            ops_file.writelines(label + '\n' for label in opcode_labels)
+    exprs, exprs_nc, opcodes = [],[],[]
+
+    for clr_expr, expr, opcode in sampler.sample(cmd_args.samples,
+                                                      cmd_args.max_depth):
+        exprs.append(clr_expr)
+        exprs_nc.append(expr)
+        opcodes.append(opcode)
+    
+    
+    def try_export(path, items):
+        if path:
+            with open(path, 'w+') as outfile:
+                outfile.write('\n'.join(items))
+
+    try_export(cmd_args.op_path, opcodes)
+    try_export(cmd_args.expr_path, exprs_nc)
+    try_export(cmd_args.color_path, exprs)
+ 
