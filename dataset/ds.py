@@ -126,7 +126,7 @@ if __name__ == '__main__':
     def try_export(path, items):
         if path:
             with open(path, 'w+') as outfile:
-                outfile.write('\n'.join(items))
+                outfile.write('\n'.join(items)+'\n')
 
     try_export(cmd_args.op_path, opcodes)
     try_export(cmd_args.expr_path, exprs_nc)

@@ -73,7 +73,7 @@ def generate_images():
     os.rename('labels.txt', 'itl_labels.txt')
 
     ops = list(map(lambda x: x+'.op', colorfull))
-    print(ops)
+
     operators = []
     for part_op in ops:
         with open(part_op, 'r') as partfile:
@@ -82,7 +82,7 @@ def generate_images():
         opfile.write(
             '\n'.join(list(filter(lambda x: x.strip() != "", operators))))
 
-    for f in black + colorfull:
+    for f in black + colorfull + ops:
         os.remove(f)
 
 
@@ -116,12 +116,11 @@ def merge_annotations():
         json_data = json.load(annotfile)
 
     with open(os.path.join(result_dir, 'itl_labels.txt'), 'r+') as labelsfile:
-        labels = labelsfile.readlines()
+        labels = labelsfile.read().splitlines()
 
     with open(os.path.join(result_dir, 'operators.txt'), 'r+') as opfile:
-        operators = opfile.readlines()
+        operators = opfile.read().splitlines()
 
-    print(len(labels), len(json_data), len(operators))
     for idx in range(len(json_data)):
         name = json_data[idx]['name']
         assert(int(name[len('eq'):name.find('.')]) == idx)
