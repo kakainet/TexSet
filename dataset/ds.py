@@ -59,6 +59,9 @@ class Operators:
     def inline_binary(self):
         return set(filter(Operator.is_inline, self.binary()))
 
+    def unary(self):
+        return set(filter(lambda x: x.operands == 1, self.all))
+
 
 class ExprSampler:
     def __init__(self, ops: Operators):
@@ -77,14 +80,21 @@ class ExprSampler:
 
     def sample(self, k, d):
         for _ in range(k):
-            c1, c2 = '1,0,0', '0,0,1'
-            # TODO: allow also unary ops (coloring for them)
-            s1, s2 = self.single(
-                d, forbidden_ops=self._ops.inline_binary()), self.single(d)
-            bop = random.choice(tuple(self._ops.binary()))
-            yield bop.latex.format(
-                color_expr(s1, c1), color_expr(s2, c2)
-            ), bop.latex.format(s1, s2), bop.opcode
+            if randbool(0.7):
+                c1, c2 = '1,0,0', '0,0,1'
+                # TODO: allow also unary ops (coloring for them)
+                s1, s2 = self.single(
+                    d, forbidden_ops=self._ops.inline_binary()), self.single(d)
+                bop = random.choice(tuple(self._ops.binary()))
+                yield bop.latex.format(
+                    color_expr(s1, c1), color_expr(s2, c2)
+                ), bop.latex.format(s1, s2), bop.opcode
+            else:
+                c = '1,0,0'
+                s = self.single(d)
+                uop = random.choice(tuple(self._ops.unary()))
+                yield uop.latex.format(color_expr(s, c)), uop.latex.format(s, c), uop.opcode
+
 
 
 if __name__ == '__main__':
@@ -104,8 +114,6 @@ if __name__ == '__main__':
 
     cmd_args = parser.parse_args()
 
-    
-
     with open(cmd_args.ops_cfg, 'r') as ops_cfg_file:
         ops_config = json.load(ops_cfg_file)
 
@@ -114,15 +122,14 @@ if __name__ == '__main__':
 
     opcode_labels = []
 
-    exprs, exprs_nc, opcodes = [],[],[]
+    exprs, exprs_nc, opcodes = [], [], []
 
     for clr_expr, expr, opcode in sampler.sample(cmd_args.samples,
-                                                      cmd_args.max_depth):
+                                                 cmd_args.max_depth):
         exprs.append(clr_expr)
         exprs_nc.append(expr)
         opcodes.append(opcode)
-    
-    
+
     def try_export(path, items):
         if path:
             with open(path, 'w+') as outfile:
@@ -131,4 +138,3 @@ if __name__ == '__main__':
     try_export(cmd_args.op_path, opcodes)
     try_export(cmd_args.expr_path, exprs_nc)
     try_export(cmd_args.color_path, exprs)
- 
