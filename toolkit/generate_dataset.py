@@ -18,8 +18,9 @@ def signal_handler(sig, frame):
 
 def dump_func_name(func):
     def echo_func(*func_args, **func_kwargs):
-        print('Start func: {}'.format(func.__name__))
-        return func(*func_args, **func_kwargs)
+        print(f"{func.__name__}... ", end='')
+        func(*func_args, **func_kwargs)
+        print('done')
 
     return echo_func
 
@@ -33,7 +34,7 @@ def clean_old():
 
 @dump_func_name
 def load_config():
-    with open(args.config, 'r+') as json_config:
+    with open(args.job, 'r+') as json_config:
         return json.load(json_config)
 
 
@@ -43,12 +44,13 @@ def generate_inputs():
         black_f = output_cp_files[j]
         color_f = output_files[j]
         subprocess.run(
-            ["python3", "dataset/ds.py", f"--ops_cfg={ops_cfg_path}",
-             "--max_depth", str(cfg['max-depth']),
+            ["python3", "dataset/ds.py", 
+            f"--ops-cfg={ops_cfg_path}",
+             "--max-depth", str(cfg['max-depth']),
              "--samples", str(cfg["samples-in-part"]),
-             f"--ops_path=dataset/latex2image/src/input{j}.in.ops"],
-            stdout=color_f,
-            stderr=black_f)
+             f"--op-path=dataset/latex2image/src/input{j}.in.op",
+             f"--expr-path=dataset/latex2image/src/input{j}.in.black",
+             f"--color-path=dataset/latex2image/src/input{j}.in"])
 
 
 @dump_func_name
@@ -62,7 +64,7 @@ def generate_images():
     subprocess.run(['bash', 'set.sh', *black])
     os.rename('output', 'output_black')
     os.rename('labels.txt', 'itl_labels.txt')
-    # TODO: what to do with .ops files, to make them input for annotations?
+
     for f in black + colorfull:
         os.remove(f)
 
@@ -88,13 +90,17 @@ def transform_bbox():
                     '--dim', '224', '--annotations', 'output/annotations.json',
                     '--output-dir', 'output/output_proper'])
 
+@dump_func_name
+def merge_annotations():
+    pass
+
 
 if __name__ == "__main__":
     signal.signal(signal.SIGINT, signal_handler)
     owd = os.getcwd()
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--config', help='config file',
+    parser.add_argument('--job', help='job config file',
                         required=True, type=str)
 
     args = parser.parse_args()
@@ -113,5 +119,6 @@ if __name__ == "__main__":
     generate_images()
     generate_bbox()
     transform_bbox()
+    merge_annotations()
 
     os.chdir(owd)

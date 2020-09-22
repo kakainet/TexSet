@@ -1,5 +1,5 @@
 {
     "max-depth": 4,
     "parts": 12,
-    "samples-in-part": 512
+    "samples-in-part": 10
 }
