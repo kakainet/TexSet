@@ -19,8 +19,9 @@ def signal_handler(sig, frame):
 def dump_func_name(func):
     def echo_func(*func_args, **func_kwargs):
         print(f"{func.__name__}... ", end='')
-        func(*func_args, **func_kwargs)
+        res = func(*func_args, **func_kwargs)
         print('done')
+        return res
 
     return echo_func
 
@@ -35,7 +36,8 @@ def clean_old():
 @dump_func_name
 def load_config():
     with open(args.job, 'r+') as json_config:
-        return json.load(json_config)
+        json_data = json.load(json_config)
+    return json_data
 
 
 @dump_func_name
@@ -105,6 +107,8 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     cfg = load_config()
+    assert(cfg)
+    print('Config loaded:', cfg)
     result_dir = 'output'
 
     output_files = [open(os.path.join(
