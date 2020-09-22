@@ -46,8 +46,8 @@ def generate_inputs():
         black_f = output_cp_files[j]
         color_f = output_files[j]
         subprocess.run(
-            ["python3", "dataset/ds.py", 
-            f"--ops-cfg={ops_cfg_path}",
+            ["python3", "dataset/ds.py",
+             f"--ops-cfg={ops_cfg_path}",
              "--max-depth", str(cfg['max-depth']),
              "--samples", str(cfg["samples-in-part"]),
              f"--op-path=dataset/latex2image/src/input{j}.in.op",
@@ -57,8 +57,13 @@ def generate_inputs():
 
 @dump_func_name
 def generate_images():
+    def compare(entry):
+        def get_idx(entry): return int(
+            entry[len('input'):entry.find('.')])
+        return get_idx(entry)
+
     os.chdir('dataset/latex2image/src')
-    colorfull = glob.glob('*.in')
+    colorfull = sorted(glob.glob('*.in'), key=compare)
     black = list(map(lambda x: x+'.black', colorfull))
     subprocess.run(['bash', 'set.sh', *colorfull])
     os.rename('output', 'output_color')
@@ -66,6 +71,16 @@ def generate_images():
     subprocess.run(['bash', 'set.sh', *black])
     os.rename('output', 'output_black')
     os.rename('labels.txt', 'itl_labels.txt')
+
+    ops = list(map(lambda x: x+'.op', colorfull))
+    print(ops)
+    operators = []
+    for part_op in ops:
+        with open(part_op, 'r') as partfile:
+            operators += partfile.read().splitlines()
+    with open('operators.txt', 'w+') as opfile:
+        opfile.write(
+            '\n'.join(list(filter(lambda x: x.strip() != "", operators))))
 
     for f in black + colorfull:
         os.remove(f)
@@ -76,6 +91,7 @@ def generate_bbox():
     shutil.move('output_color', os.path.join(owd, result_dir))
     shutil.move('output_black', os.path.join(owd, result_dir))
     shutil.move('itl_labels.txt', os.path.join(owd, result_dir))
+    shutil.move('operators.txt', os.path.join(owd, result_dir))
 
     os.chdir(owd)
 
@@ -92,9 +108,30 @@ def transform_bbox():
                     '--dim', '224', '--annotations', 'output/annotations.json',
                     '--output-dir', 'output/output_proper'])
 
+
 @dump_func_name
 def merge_annotations():
-    pass
+    # merges both labels and operators to annotations.json
+    with open(os.path.join(result_dir, 'annotations.json'), 'r+') as annotfile:
+        json_data = json.load(annotfile)
+
+    with open(os.path.join(result_dir, 'itl_labels.txt'), 'r+') as labelsfile:
+        labels = labelsfile.readlines()
+
+    with open(os.path.join(result_dir, 'operators.txt'), 'r+') as opfile:
+        operators = opfile.readlines()
+
+    print(len(labels), len(json_data), len(operators))
+    for idx in range(len(json_data)):
+        name = json_data[idx]['name']
+        assert(int(name[len('eq'):name.find('.')]) == idx)
+        json_data[idx]['label'] = labels[idx]
+        json_data[idx]['op'] = operators[idx]
+
+    json_out = json.dumps(json_data)
+
+    with open(os.path.join(result_dir, 'annotations.json'), 'w+') as annots:
+        annots.write(json_out)
 
 
 if __name__ == "__main__":
