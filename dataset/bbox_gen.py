@@ -19,8 +19,7 @@ def convert(o):
 def avgcolor(img):
     total = [0, 0, 0]
     ctr = 0
-    eps = int(0.15 * sum(img.shape)/len(img.shape))
-    print(f'eps={eps}')
+    eps = int(0.1 * sum(img.shape)/len(img.shape))
     rows, cols, _ = img.shape
     for i in range(eps, rows - eps):
         for j in range(eps, cols - eps):
@@ -36,7 +35,6 @@ def avgcolor(img):
 
 
 def process_img(in_dir, out_dir, name):
-    print(f'Start {name}')
     image = cv2.imread(os.path.join(in_dir, name))
     x,y,c = image.shape
     assert(c==3)
@@ -50,11 +48,9 @@ def process_img(in_dir, out_dir, name):
             gray_detector[i,j] = abs(b-g)+abs(b-r)+abs(g-r)
 
     image2 = image.copy()
-    image2= np.where(gray_detector > 5, image2, [255,255,255])
+    image2= np.where(gray_detector > 5, image2, 255)
     cv2.imwrite(os.path.join(out_dir,'tmp', name), image2)
-    print(image.shape, image2.shape)
     gray = 255 - cv2.cvtColor(image2, cv2.COLOR_BGR2GRAY)
-    exit(0)
     boxes = {}
     for i in range(8):
         boxes[i] = []
@@ -64,11 +60,9 @@ def process_img(in_dir, out_dir, name):
         x, y, w, h = cv2.boundingRect(c)
         subimg = image[y:y+h, x:x+w]
         c = avgcolor(subimg)
-        print(c)
         hashcode = sum([(c[j] > 220) * (2**j) for j in range(3)])
         boxes[hashcode].append([x, y, x+w, y+h])
     bboxes = []
-    print(boxes)
     for k in sorted(boxes.keys()):
         if not boxes[k]: # colour not present or colour is black (== operator)
             continue
