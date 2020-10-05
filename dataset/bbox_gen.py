@@ -35,7 +35,6 @@ def avgcolor(img):
 
 
 def process_img(in_dir, out_dir, name):
-    print(f'Start {name}')
     image = cv2.imread(os.path.join(in_dir, name))
     x,y,c = image.shape
     assert(c==3)
@@ -60,7 +59,6 @@ def process_img(in_dir, out_dir, name):
         x, y, w, h = cv2.boundingRect(c)
         subimg = image[y:y+h, x:x+w]
         c = avgcolor(subimg)
-        print(c)
         hashcode = sum([(c[j] > 220) * (2**j) for j in range(3)])
         boxes[hashcode].append([x, y, x+w, y+h])
     bboxes = []
