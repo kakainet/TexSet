@@ -45,7 +45,10 @@ def process_img(in_dir, out_dir, name):
     for i in range(x):
         for j in range(y):
             b,g,r=[image[i,j,p] for p in range(3)]
-            gray_detector[i,j] = abs(b-g)+abs(b-r)+abs(g-r)
+            gray_detector[i,j] = min(int(abs(int(b)-int(g)))+
+                                     int(abs(int(b)-int(r)))+
+                                     int(abs(int(g)-int(r))),
+                                255)
 
     image2 = image.copy()
     image2= np.where(gray_detector > 5, image2, 255)
@@ -63,7 +66,7 @@ def process_img(in_dir, out_dir, name):
         boxes[hashcode].append([x, y, x+w, y+h])
     bboxes = []
     for k in sorted(boxes.keys()):
-        if not boxes[k]: # colour not present or colour is black (== operator)
+        if not boxes[k] or k == 0: # colour not present or colour is black (== operator)
             continue
         m = 0
 
