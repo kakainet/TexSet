@@ -68,7 +68,7 @@ class ExprSampler:
         self._ops = ops
 
     def single(self, depth, forbidden_ops=None):
-        if randbool(0.3) or depth == 1:
+        if randbool(1-deeper_chance) or depth == 1:
             return atom()
 
         allowed_ops = self._ops.all if not forbidden_ops else \
@@ -111,7 +111,8 @@ if __name__ == '__main__':
                         required=False, type=str)
     parser.add_argument('--color-path', help='optional colors save path',
                         required=False, type=str)
-
+    parser.add_argument('--deeper-chance', help='Chance to go deeper with generating.',
+                        required=False, type=float, default=0.7)
     cmd_args = parser.parse_args()
 
     with open(cmd_args.ops_cfg, 'r') as ops_cfg_file:
@@ -119,7 +120,7 @@ if __name__ == '__main__':
 
     operators = Operators.from_dict(ops_config)
     sampler = ExprSampler(operators)
-
+    deeper_chance = cmd_args.deeper_chance
     opcode_labels = []
 
     exprs, exprs_nc, opcodes = [], [], []
