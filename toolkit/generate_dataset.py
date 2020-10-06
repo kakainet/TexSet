@@ -42,21 +42,24 @@ def load_config():
 
 @dump_func_name
 def generate_inputs():
-    depth_loop = range(2, cfg['max-depth']+1) if level_aug else [cfg['max-depth']]
+    depth_loop = range(2, cfg['max-depth'] + 1) if level_aug else [cfg['max-depth']]
     for d in depth_loop:
         for j in range(cfg['parts']):
             idx = (d - min(depth_loop))*cfg['parts'] + j
             black_f = output_cp_files[j]
             color_f = output_files[j]
-            subprocess.run(
-                ["python3", "dataset/ds.py",
-                f"--ops-cfg={ops_cfg_path}",
-                "--max-depth", str(d),
-                #--depth-split, 0
-                "--samples", str(cfg["samples-in-part"]),
-                f"--op-path=dataset/latex2image/src/input{idx}.in.op",
-                f"--expr-path=dataset/latex2image/src/input{idx}.in.black",
-                f"--color-path=dataset/latex2image/src/input{idx}.in"])
+            cmd = ["python3", "dataset/ds.py",
+                   f"--ops-cfg={ops_cfg_path}",
+                   "--max-depth", str(d),
+                   "--samples", str(cfg["samples-in-part"]),
+                   f"--op-path=dataset/latex2image/src/input{idx}.in.op",
+                   f"--expr-path=dataset/latex2image/src/input{idx}.in.black",
+                   f"--color-path=dataset/latex2image/src/input{idx}.in"]
+
+            if level_aug:
+                cmd += ["--deeper-chance", "1"]
+            subprocess.run(cmd)
+
 
 
 @dump_func_name
@@ -151,7 +154,9 @@ if __name__ == "__main__":
     print('Config loaded:', cfg)
     result_dir = 'output'
     level_aug = cfg['level-augmentation']
-    limit = cfg['parts'] if not level_aug else cfg['parts'] * (cfg['max-depth'] - 1)
+    limit = cfg['parts'] if not level_aug else cfg['parts'] * \
+        (cfg['max-depth'] - 1)
+
 
     output_files = [open(os.path.join(
         'dataset/latex2image/src', f'input{j}.in'), 'w+') for j in
