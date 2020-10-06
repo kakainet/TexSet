@@ -61,6 +61,7 @@ def generate_inputs():
             subprocess.run(cmd)
 
 
+
 @dump_func_name
 def generate_images():
     def compare(entry):
@@ -155,6 +156,7 @@ if __name__ == "__main__":
     level_aug = cfg['level-augmentation']
     limit = cfg['parts'] if not level_aug else cfg['parts'] * \
         (cfg['max-depth'] - 1)
+
 
     output_files = [open(os.path.join(
         'dataset/latex2image/src', f'input{j}.in'), 'w+') for j in
