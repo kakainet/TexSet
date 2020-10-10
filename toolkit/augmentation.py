@@ -7,42 +7,17 @@ import json
 from uuid import uuid4
 
 
-def generate_job_file(out_file_path: str, template_path: str, level: int, parts: int, samples: int):
-    with open(template_path, 'r') as template_file:
-        template = json.load(template_file)
+def generate_aug(cfg: dict, dataset_path: str):
+    threads = cfg['threads']
+    perlvl = cfg['samples-lvl-percent']
 
-    template['max-depth'] = level
-    template['parts'] = parts
-    template['samples-in-part'] = samples
-    template['level-augmentation'] = False
-    template['deeper-chance'] = 1
+    assert(all([v >= 0 and v <= 1 for v in perlvl.values()]))
+    assert(sum(perlvl.values()) <= 1)
 
-    with open(out_file_path, 'w+') as out_file:
-        out_file.write(json.dumps(template))
+    imgs_names = os.listdir(os.path.join(dataset_path, 'output_paper'))
 
 
-def generate_aug(cfg: dict, dataset_script: str, template_path):
-    multithread = cfg['parts']
-    perlvl = cfg['samples-in-part-per-lvl']
-    for idx, lvl in enumerate(perlvl):
-        print(f'Depth {idx}: generate {lvl} samples')
-
-        tmp_job_file = f'.job_tmp_{uuid4()}.json'
-        generate_job_file(tmp_job_file, template_path, idx, multithread, lvl)
-        try:
-            pass
-            # completed_proc = subprocess.run([
-            #     'python3', dataset_script,
-            #     '--job', ''
-            # ])
-
-            # completed_proc.check_returncode()
-        except CalledProcessError:
-            print(f'ERROR during generating depth {lvl}')
-            exit(1)
-
-        os.remove(tmp_job_file)
-
+    
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -50,14 +25,23 @@ if __name__ == "__main__":
     parser.add_argument(
         '--aug-job', help='Augmentation job config file path', required=True, type=str)
     parser.add_argument(
-        '--job-template', help='Template for single job config file path', required=True, type=str)
-    parser.add_argument(
-        '--dataset-script', help='Path to generate script', required=True, type=str)
+        '--dataset', help='Path to dataset', required=True, type=str)
+
+    """ AUG-JOB
+        "samples-lvl-percent": {
+        "0": any - any value doesn't matter there - 0 means that it has 0 depth
+        "1": 0.1, <-- 10% from dataset will be rescaled as it is 1-depth node
+        .
+        .
+        .
+        "N": 0.1
+    }
+    """
 
     args = parser.parse_args()
     config_path = args.aug_job
-    template_path = args.job_template
+    dataset_path = args.dataset
     with open(config_path, 'r') as cfg_file:
         cfg = json.loads(cfg_file.read())
 
-    generate_aug(cfg, args.dataset_script, template_path)
+    generate_aug(cfg, dataset_path)
