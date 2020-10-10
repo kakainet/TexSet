@@ -1,6 +1,7 @@
 {
     "max-depth": 4,
     "parts": 12,
-    "samples-in-part": 128,
-    "level-augmentation": true
+    "samples-in-part": 2778,
+    "level-augmentation": true,
+    "deeper-chance": 1
 }
