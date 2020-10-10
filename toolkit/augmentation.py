@@ -1,10 +1,13 @@
-import subprocess
-from subprocess import CalledProcessError
 import argparse
 import os
-import numpy as np
 import json
-from uuid import uuid4
+import random
+from multiprocessing import Pool
+from typing import Tuple
+
+def rescale_img(rescale_data: Tuple[str, int]):
+    path, depth = rescale_data
+    print(f'rescale img with {path}, {depth}')
 
 
 def generate_aug(cfg: dict, dataset_path: str):
@@ -14,8 +17,20 @@ def generate_aug(cfg: dict, dataset_path: str):
     assert(all([v >= 0 and v <= 1 for v in perlvl.values()]))
     assert(sum(perlvl.values()) <= 1)
 
-    imgs_names = os.listdir(os.path.join(dataset_path, 'output_paper'))
 
+    imgs_names = set(os.listdir(os.path.join(dataset_path, 'output_proper')))
+    to_scale = dict()
+    dataset_size = len(imgs_names)
+    print(dataset_size)
+    for k, v in perlvl.items():
+        samples = int(v * dataset_size)
+        to_scale[k] = random.sample(imgs_names, samples)
+        imgs_names = imgs_names.difference(set(to_scale[k]))
+
+    print(to_scale)
+
+    with Pool(processes=threads) as pool:
+        pool.map(rescale_img, [(v, int(k)) for k, v in to_scale.items()])
 
     
 
