@@ -50,7 +50,7 @@ class Operators:
         self._binary = set(filter(lambda x: x.operands == 2, self.all))
         self._inline_binary = set(filter(Operator.is_inline, self.binary()))
         self._unary = set(filter(lambda x: x.operands == 1, self.all))
-        self._leaf = set(filter(lambda x: x.operands == 1, self.all))
+        self._leaf = set(filter(lambda x: x.operands == 0, self.all))
 
     @staticmethod
     def from_dict(ops: dict):
@@ -75,22 +75,22 @@ class ExprSampler:
         self._ops = ops
 
     def single(self, depth, forbidden_ops=None):
-        if randbool(1-deeper_chance):
-            return atom()
+        if randbool(1-deeper_chance) or depth == 1:
+            return depth, atom()
 
         allowed_ops = self._ops.all if not forbidden_ops else \
             self._ops.all - forbidden_ops
 
-        return random.choice(tuple(allowed_ops)).latex.format(
-            self.single(depth - 1),
-            self.single(depth - 1))
+        (d1, fst), (d2, snd) = self.single(depth-1), self.single(depth-1)
+
+        return max(d1, d2), random.choice(tuple(allowed_ops)).latex.format(
+            fst, snd)
 
     def sample(self, k, d):
         for _ in range(k):
             if randbool(0.7):
                 c1, c2 = '1,0,0', '0,0,1'
-                # TODO: allow also unary ops (coloring for them)
-                s1, s2 = self.single(
+                (_, s1), (_, s2) = self.single(
                     d, forbidden_ops=self._ops.inline_binary()), self.single(d)
                 bop = random.choice(tuple(self._ops.binary()))
                 yield bop.latex.format(
@@ -98,8 +98,11 @@ class ExprSampler:
                 ), bop.latex.format(s1, s2), bop.opcode
             else:
                 c = '1,0,0'
-                s = self.single(d)
-                uop = random.choice(tuple(self._ops.unary()))
+                d, s = self.single(d)
+                if d != 1:
+                    uop = random.choice(tuple(self._ops.unary()))
+                else:
+                    uop = self._ops.leaf()[0]
                 yield uop.latex.format(color_expr(s, c)), uop.latex.format(s, c), uop.opcode
 
 
