@@ -4,11 +4,30 @@ import json
 import random
 from multiprocessing import Pool
 from typing import Tuple
+import cv2
+import itertools
 
-def rescale_img(rescale_data: Tuple[str, int]):
-    path, depth = rescale_data
-    print(f'rescale img with {path}, {depth}')
+RESCALE_DEPTH = {
+    1: 0.5,
+    2: 0.3,
+    3: 0.2,
+    4: 0.1
+}
 
+def rescale_img(rescale_data: Tuple[int, str]):
+    depth, path = rescale_data
+    print(f'Rescaling {path}')
+    dst_path = os.path.join(dataset_path, 'output_proper', path)
+    img = cv2.imread(dst_path)
+    shape=list(img.shape)
+    ori_shape = tuple(shape[:2])
+    shape[0]=int(shape[0]*RESCALE_DEPTH[depth])
+    shape[1]=int(shape[1]*RESCALE_DEPTH[depth])
+    shape = tuple(shape[:2])
+    img = cv2.resize(img, shape)
+    img = cv2.resize(img, ori_shape)
+    os.remove(dst_path)
+    cv2.imwrite(dst_path, img)
 
 def generate_aug(cfg: dict, dataset_path: str):
     threads = cfg['threads']
@@ -27,10 +46,12 @@ def generate_aug(cfg: dict, dataset_path: str):
         to_scale[k] = random.sample(imgs_names, samples)
         imgs_names = imgs_names.difference(set(to_scale[k]))
 
+    to_scale=list(itertools.chain.from_iterable(((int(index), path) for path in paths) for index, paths in to_scale.items()))
     print(to_scale)
 
+
     with Pool(processes=threads) as pool:
-        pool.map(rescale_img, [(v, int(k)) for k, v in to_scale.items()])
+        pool.map(rescale_img, to_scale)
 
     
 
