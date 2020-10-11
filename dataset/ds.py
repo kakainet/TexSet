@@ -13,7 +13,7 @@ def eprint(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
 
 
-letters = 'xyabcd'
+letters = [c for c in string.ascii_letters] + [R'\phi', R'\alpha', R'\beta', R'\gamma', R'\delta', R'\Phi', R'\Gamma', R'\Delta']
 symbols = string.digits + letters
 
 
@@ -47,6 +47,10 @@ class Operator:
 class Operators:
     def __init__(self, ops: set):
         self.all = ops
+        self._binary = set(filter(lambda x: x.operands == 2, self.all))
+        self._inline_binary = set(filter(Operator.is_inline, self.binary()))
+        self._unary = set(filter(lambda x: x.operands == 1, self.all))
+        self._leaf = set(filter(lambda x: x.operands == 1, self.all))
 
     @staticmethod
     def from_dict(ops: dict):
@@ -54,13 +58,16 @@ class Operators:
         return Operators(ops_set)
 
     def binary(self):
-        return set(filter(lambda x: x.operands == 2, self.all))
+        return self._binary
 
     def inline_binary(self):
-        return set(filter(Operator.is_inline, self.binary()))
+        return self._inline_binary
 
     def unary(self):
-        return set(filter(lambda x: x.operands == 1, self.all))
+        return self._unary
+
+    def leaf(self):
+        return self._leaf
 
 
 class ExprSampler:
@@ -68,7 +75,7 @@ class ExprSampler:
         self._ops = ops
 
     def single(self, depth, forbidden_ops=None):
-        if randbool(1-deeper_chance) or depth == 1:
+        if randbool(1-deeper_chance):
             return atom()
 
         allowed_ops = self._ops.all if not forbidden_ops else \
