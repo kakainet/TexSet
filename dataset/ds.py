@@ -14,7 +14,7 @@ def eprint(*args, **kwargs):
 
 
 letters = [c for c in string.ascii_letters] + [R'\phi', R'\alpha', R'\beta', R'\gamma', R'\delta', R'\Phi', R'\Gamma', R'\Delta']
-symbols = string.digits + letters
+symbols = [c for c in string.digits] + letters
 
 
 def color_expr(expr, c):
@@ -50,7 +50,7 @@ class Operators:
         self._binary = set(filter(lambda x: x.operands == 2, self.all))
         self._inline_binary = set(filter(Operator.is_inline, self.binary()))
         self._unary = set(filter(lambda x: x.operands == 1, self.all))
-        self._leaf = set(filter(lambda x: x.operands == 0, self.all))
+        self._leaf = list(filter(lambda x: x.operands == 0, self.all))[0]
 
     @staticmethod
     def from_dict(ops: dict):
@@ -102,7 +102,7 @@ class ExprSampler:
                 if d != 1:
                     uop = random.choice(tuple(self._ops.unary()))
                 else:
-                    uop = self._ops.leaf()[0]
+                    uop = self._ops.leaf()
                 yield uop.latex.format(color_expr(s, c)), uop.latex.format(s, c), uop.opcode
 
 
