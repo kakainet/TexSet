@@ -54,10 +54,9 @@ def generate_inputs():
                    "--samples", str(cfg["samples-in-part"]),
                    f"--op-path=dataset/latex2image/src/input{idx}.in.op",
                    f"--expr-path=dataset/latex2image/src/input{idx}.in.black",
-                   f"--color-path=dataset/latex2image/src/input{idx}.in"]
+                   f"--color-path=dataset/latex2image/src/input{idx}.in",
+                   f"--deeper-chance={cfg['deeper-chance']}"]
 
-            if level_aug:
-                cmd += ["--deeper-chance", "1"]
             subprocess.run(cmd)
 
 

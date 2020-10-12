@@ -13,8 +13,8 @@ def eprint(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
 
 
-letters = 'xyabcd'
-symbols = string.digits + letters
+letters = [c for c in string.ascii_letters] + [R'\phi', R'\alpha', R'\beta', R'\gamma', R'\delta', R'\Phi', R'\Gamma', R'\Delta']
+symbols = [c for c in string.digits] + letters
 
 
 def color_expr(expr, c):
@@ -27,7 +27,7 @@ def randbool(f):
 
 def atom():
     if randbool(0.5):
-        return f'{random.choice(symbols)}{random.choice(letters)}'
+        return f'{random.choice(symbols)} {random.choice(letters)}'
     else:
         return f'{random.choice(symbols)}'
 
@@ -47,6 +47,10 @@ class Operator:
 class Operators:
     def __init__(self, ops: set):
         self.all = ops
+        self._binary = set(filter(lambda x: x.operands == 2, self.all))
+        self._inline_binary = set(filter(Operator.is_inline, self.binary()))
+        self._unary = set(filter(lambda x: x.operands == 1, self.all))
+        self._leaf = list(filter(lambda x: x.operands == 0, self.all))[0]
 
     @staticmethod
     def from_dict(ops: dict):
@@ -54,36 +58,39 @@ class Operators:
         return Operators(ops_set)
 
     def binary(self):
-        return set(filter(lambda x: x.operands == 2, self.all))
+        return self._binary
 
     def inline_binary(self):
-        return set(filter(Operator.is_inline, self.binary()))
+        return self._inline_binary
 
     def unary(self):
-        return set(filter(lambda x: x.operands == 1, self.all))
+        return self._unary
+
+    def leaf(self):
+        return self._leaf
 
 
 class ExprSampler:
     def __init__(self, ops: Operators):
         self._ops = ops
 
-    def single(self, depth, forbidden_ops=None):
+    def single(self, depth, deep_acc=1, forbidden_ops=None):
         if randbool(1-deeper_chance) or depth == 1:
-            return atom()
+            return deep_acc, atom()
 
         allowed_ops = self._ops.all if not forbidden_ops else \
             self._ops.all - forbidden_ops
 
-        return random.choice(tuple(allowed_ops)).latex.format(
-            self.single(depth - 1),
-            self.single(depth - 1))
+        (d1, fst), (d2, snd) = self.single(depth-1, deep_acc+1), self.single(depth-1, deep_acc+1)
+
+        return max(d1, d2), random.choice(tuple(allowed_ops)).latex.format(
+            fst, snd)
 
     def sample(self, k, d):
         for _ in range(k):
             if randbool(0.7):
                 c1, c2 = '1,0,0', '0,0,1'
-                # TODO: allow also unary ops (coloring for them)
-                s1, s2 = self.single(
+                (_, s1), (_, s2) = self.single(
                     d, forbidden_ops=self._ops.inline_binary()), self.single(d)
                 bop = random.choice(tuple(self._ops.binary()))
                 yield bop.latex.format(
@@ -91,8 +98,11 @@ class ExprSampler:
                 ), bop.latex.format(s1, s2), bop.opcode
             else:
                 c = '1,0,0'
-                s = self.single(d)
-                uop = random.choice(tuple(self._ops.unary()))
+                deep_acc, s = self.single(d)
+                if deep_acc != 1:
+                    uop = random.choice(tuple(self._ops.unary()))
+                else:
+                    uop = self._ops.leaf()
                 yield uop.latex.format(color_expr(s, c)), uop.latex.format(s, c), uop.opcode
 
 
@@ -114,7 +124,6 @@ if __name__ == '__main__':
     parser.add_argument('--deeper-chance', help='Chance to go deeper with generating.',
                         required=False, type=float, default=0.7)
     cmd_args = parser.parse_args()
-
     with open(cmd_args.ops_cfg, 'r') as ops_cfg_file:
         ops_config = json.load(ops_cfg_file)
 

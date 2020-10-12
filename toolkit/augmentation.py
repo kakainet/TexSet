@@ -57,8 +57,8 @@ if __name__ == "__main__":
 
     """ AUG-JOB
         "samples-lvl-percent": {
-        "0": any - any value doesn't matter there - 0 means that it has 0 depth
-        "1": 0.1, <-- 10% from dataset will be rescaled as it is 1-depth node
+        "1": any - any value doesn't matter there - 1 means that it has 1 depth (i.e. 0)
+        "2": 0.1, <-- 10% from dataset will be rescaled as it is 2-depth node
         .
         .
         .
