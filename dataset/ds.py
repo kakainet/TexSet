@@ -124,7 +124,6 @@ if __name__ == '__main__':
     parser.add_argument('--deeper-chance', help='Chance to go deeper with generating.',
                         required=False, type=float, default=0.7)
     cmd_args = parser.parse_args()
-    print(cmd_args)
     with open(cmd_args.ops_cfg, 'r') as ops_cfg_file:
         ops_config = json.load(ops_cfg_file)
 
