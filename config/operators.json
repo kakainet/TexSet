@@ -40,19 +40,19 @@
     "operands": 1
   },
   "par": {
-    "latex": "\\left({0}\\right)",
+    "latex": "\\left( {0} \\right)",
     "operands": 1
   },
   "fpar": {
-    "latex": "f\\left({0}\\right)",
+    "latex": "f\\left( {0} \\right)",
     "operands": 1
   },
   "ffpar": {
-    "latex": "F\\left({0}\\right)",
+    "latex": "F\\left( {0} \\right)",
     "operands": 1
   },
   "gpar": {
-    "latex": "G\\left({0}\\right)",
+    "latex": "G\\left( {0} \\right)",
     "operands": 1
   }
 }

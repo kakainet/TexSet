@@ -27,7 +27,7 @@ def randbool(f):
 
 def atom():
     if randbool(0.5):
-        return f'{random.choice(symbols)}{random.choice(letters)}'
+        return f'{random.choice(symbols)} {random.choice(letters)}'
     else:
         return f'{random.choice(symbols)}'
 
