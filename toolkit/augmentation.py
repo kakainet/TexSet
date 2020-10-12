@@ -26,17 +26,26 @@ def rescale_img(rescale_data: Tuple[int, str]):
 def generate_aug(cfg: dict, dataset_path: str):
     threads = cfg['threads']
     perlvl = cfg['samples-lvl-percent']
-
+    perlvl = {
+        int(k): v for k, v in perlvl.items()
+    }
     assert(all([v >= 0 and v <= 1 for v in perlvl.values()]))
     assert(sum(perlvl.values()) <= 1)
 
-    imgs_names = set(os.listdir(os.path.join(dataset_path, 'output_proper')))
+    imgs_path = os.path.join(dataset_path, 'output_proper')
+    available_depths = set(entry['depth'] for entry in annots)
+    max_depth = max(available_depths)
+    img_names = {
+        k: set(x['name'] for x in filter(lambda entry: entry['depth'] == k, annots)) for k in available_depths
+    }
+
     to_scale = dict()
-    dataset_size = len(imgs_names)
+    dataset_size = {k: len(img_names[k]) for k in img_names.keys()}
     for k, v in perlvl.items():
-        samples = int(v * dataset_size)
-        to_scale[k] = random.sample(imgs_names, samples)
-        imgs_names = imgs_names.difference(set(to_scale[k]))
+        samples = int(v * dataset_size[k])
+        to_scale[k] = random.sample(img_names[max_depth-k], samples)
+        img_names[max_depth-k] = img_names[max_depth -
+                                           k].difference(set(to_scale[k]))
 
     to_scale = list(itertools.chain.from_iterable(((int(index), path)
                                                    for path in paths) for index, paths in to_scale.items()))
@@ -52,6 +61,8 @@ if __name__ == "__main__":
         '--aug-job', help='Augmentation job config file path', required=True, type=str)
     parser.add_argument(
         '--dataset', help='Path to dataset', required=True, type=str)
+    parser.add_argument(
+        '--annots-path', help='Path to annotations', required=True, type=str)
     parser.add_argument(
         '--rescale-config', help='Path to rescaling config', required=True, type=str)
 
@@ -70,11 +81,16 @@ if __name__ == "__main__":
     config_path = args.aug_job
     rescale_path = args.rescale_config
     dataset_path = args.dataset
+    annots_path = args.annots_path
 
     with open(config_path, 'r') as cfg_file:
         cfg = json.loads(cfg_file.read())
 
+    with open(annots_path, 'r') as afile:
+        annots = json.loads(afile.read())
+
     with open(rescale_path, 'r') as cfg_file:
         rescale_depth = json.loads(cfg_file.read())
-    rescale_depth = {int(k): v for k,v in rescale_depth.items()}
+
+    rescale_depth = {int(k): v for k, v in rescale_depth.items()}
     generate_aug(cfg, dataset_path)

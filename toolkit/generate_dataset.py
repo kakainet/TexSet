@@ -42,7 +42,8 @@ def load_config():
 
 @dump_func_name
 def generate_inputs():
-    depth_loop = range(2, cfg['max-depth'] + 1) if level_aug else [cfg['max-depth']]
+    depth_loop = range(1, cfg['max-depth'] +
+                       1) if level_aug else [cfg['max-depth']]
     for d in depth_loop:
         for j in range(cfg['parts']):
             idx = (d - min(depth_loop))*cfg['parts'] + j
@@ -59,7 +60,6 @@ def generate_inputs():
                    f"--deeper-chance={cfg['deeper-chance']}"]
 
             subprocess.run(cmd)
-
 
 
 @dump_func_name
@@ -91,7 +91,6 @@ def generate_images():
     for part_d in dths:
         with open(part_d, 'r') as partfile:
             depths += partfile.read().splitlines()
-
 
     with open('operators.txt', 'w+') as opfile:
         opfile.write(
@@ -149,12 +148,23 @@ def merge_annotations():
         assert(int(name[len('eq'):name.find('.')]) == idx)
         json_data[idx]['label'] = labels[idx]
         json_data[idx]['op'] = operators[idx]
-        json_data[idx]['depth'] = depths[idx]
+        json_data[idx]['depth'] = int(depths[idx])
 
     json_out = json.dumps(json_data)
 
     with open(os.path.join(result_dir, 'annotations.json'), 'w+') as annots:
         annots.write(json_out)
+
+
+@dump_func_name
+def augmentation():
+    subprocess.run([
+        'python3', 'toolkit/augmentation.py',
+        f'--aug-job={args.aug_job}',
+        f'--dataset={result_dir}',
+        '--annots-path=output/annotations.json',
+        '--rescale-config=config/rescale.json'
+    ])
 
 
 if __name__ == "__main__":
@@ -164,6 +174,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--job', help='job config file',
                         required=True, type=str)
+    parser.add_argument('--aug-job', help='job config file',
+                        required=False, type=str)
 
     args = parser.parse_args()
     cfg = load_config()
@@ -173,7 +185,6 @@ if __name__ == "__main__":
     level_aug = cfg['level-augmentation']
     limit = cfg['parts'] if not level_aug else cfg['parts'] * \
         (cfg['max-depth'] - 1)
-
 
     output_files = [open(os.path.join(
         'dataset/latex2image/src', f'input{j}.in'), 'w+') for j in
@@ -189,6 +200,8 @@ if __name__ == "__main__":
     transform_bbox()
     merge_annotations()
 
-    shutil.copy(args.job, result_dir)
+    if args.aug_job:
+        augmentation()
 
+    shutil.copy(args.job, result_dir)
     os.chdir(owd)
