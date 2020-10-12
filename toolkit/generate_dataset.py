@@ -53,6 +53,7 @@ def generate_inputs():
                    "--max-depth", str(d),
                    "--samples", str(cfg["samples-in-part"]),
                    f"--op-path=dataset/latex2image/src/input{idx}.in.op",
+                   f"--depth-path=dataset/latex2image/src/input{idx}.in.depth",
                    f"--expr-path=dataset/latex2image/src/input{idx}.in.black",
                    f"--color-path=dataset/latex2image/src/input{idx}.in",
                    f"--deeper-chance={cfg['deeper-chance']}"]
@@ -79,16 +80,28 @@ def generate_images():
     os.rename('labels.txt', 'itl_labels.txt')
 
     ops = list(map(lambda x: x+'.op', colorfull))
+    dths = list(map(lambda x: x+'.depth', colorfull))
 
     operators = []
+    depths = []
     for part_op in ops:
         with open(part_op, 'r') as partfile:
             operators += partfile.read().splitlines()
+
+    for part_d in dths:
+        with open(part_d, 'r') as partfile:
+            depths += partfile.read().splitlines()
+
+
     with open('operators.txt', 'w+') as opfile:
         opfile.write(
             '\n'.join(list(filter(lambda x: x.strip() != "", operators))))
 
-    for f in black + colorfull + ops:
+    with open('depths.txt', 'w+') as dfile:
+        dfile.write(
+            '\n'.join(list(filter(lambda x: x.strip() != "", depths))))
+
+    for f in black + colorfull + ops + dths:
         os.remove(f)
 
 
@@ -98,6 +111,7 @@ def generate_bbox():
     shutil.move('output_black', os.path.join(owd, result_dir))
     shutil.move('itl_labels.txt', os.path.join(owd, result_dir))
     shutil.move('operators.txt', os.path.join(owd, result_dir))
+    shutil.move('depths.txt', os.path.join(owd, result_dir))
 
     os.chdir(owd)
 
@@ -127,11 +141,15 @@ def merge_annotations():
     with open(os.path.join(result_dir, 'operators.txt'), 'r+') as opfile:
         operators = opfile.read().splitlines()
 
+    with open(os.path.join(result_dir, 'depths.txt'), 'r+') as dfile:
+        depths = dfile.read().splitlines()
+
     for idx in range(len(json_data)):
         name = json_data[idx]['name']
         assert(int(name[len('eq'):name.find('.')]) == idx)
         json_data[idx]['label'] = labels[idx]
         json_data[idx]['op'] = operators[idx]
+        json_data[idx]['depth'] = depths[idx]
 
     json_out = json.dumps(json_data)
 
@@ -170,5 +188,7 @@ if __name__ == "__main__":
     generate_bbox()
     transform_bbox()
     merge_annotations()
+
+    shutil.copy(args.job, result_dir)
 
     os.chdir(owd)

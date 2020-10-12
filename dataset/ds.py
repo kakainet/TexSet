@@ -90,12 +90,13 @@ class ExprSampler:
         for _ in range(k):
             if randbool(0.7):
                 c1, c2 = '1,0,0', '0,0,1'
-                (_, s1), (_, s2) = self.single(
+                (d1, s1), (d2, s2) = self.single(
                     d, forbidden_ops=self._ops.inline_binary()), self.single(d)
+                deep_acc = max(d1,d2)
                 bop = random.choice(tuple(self._ops.binary()))
                 yield bop.latex.format(
                     color_expr(s1, c1), color_expr(s2, c2)
-                ), bop.latex.format(s1, s2), bop.opcode
+                ), bop.latex.format(s1, s2), bop.opcode, deep_acc
             else:
                 c = '1,0,0'
                 deep_acc, s = self.single(d)
@@ -103,7 +104,7 @@ class ExprSampler:
                     uop = random.choice(tuple(self._ops.unary()))
                 else:
                     uop = self._ops.leaf()
-                yield uop.latex.format(color_expr(s, c)), uop.latex.format(s, c), uop.opcode
+                yield uop.latex.format(color_expr(s, c)), uop.latex.format(s, c), uop.opcode, deep_acc
 
 
 
@@ -116,6 +117,8 @@ if __name__ == '__main__':
     parser.add_argument('--max-depth', help='max allowed depth of LaTeX tree',
                         required=True, type=int)
     parser.add_argument('--op-path', help='optional operator labels save path',
+                        required=False, type=str)
+    parser.add_argument('--depth-path', help='optional depth labels save path',
                         required=False, type=str)
     parser.add_argument('--expr-path', help='optional expression save path',
                         required=False, type=str)
@@ -132,19 +135,21 @@ if __name__ == '__main__':
     deeper_chance = cmd_args.deeper_chance
     opcode_labels = []
 
-    exprs, exprs_nc, opcodes = [], [], []
+    exprs, exprs_nc, opcodes, depths = [], [], [], []
 
-    for clr_expr, expr, opcode in sampler.sample(cmd_args.samples,
+    for clr_expr, expr, opcode, depth in sampler.sample(cmd_args.samples,
                                                  cmd_args.max_depth):
         exprs.append(clr_expr)
         exprs_nc.append(expr)
         opcodes.append(opcode)
+        depths.append(depth)
 
     def try_export(path, items):
         if path:
             with open(path, 'w+') as outfile:
                 outfile.write('\n'.join(items)+'\n')
 
+    try_export(cmd_args.depth_path, list(map(lambda x: str(x), depths)))
     try_export(cmd_args.op_path, opcodes)
     try_export(cmd_args.expr_path, exprs_nc)
     try_export(cmd_args.color_path, exprs)
