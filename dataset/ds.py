@@ -74,14 +74,14 @@ class ExprSampler:
     def __init__(self, ops: Operators):
         self._ops = ops
 
-    def single(self, depth, forbidden_ops=None):
+    def single(self, depth, deep_acc=1, forbidden_ops=None):
         if randbool(1-deeper_chance) or depth == 1:
-            return depth, atom()
+            return deep_acc, atom()
 
         allowed_ops = self._ops.all if not forbidden_ops else \
             self._ops.all - forbidden_ops
 
-        (d1, fst), (d2, snd) = self.single(depth-1), self.single(depth-1)
+        (d1, fst), (d2, snd) = self.single(depth-1, deep_acc+1), self.single(depth-1, deep_acc+1)
 
         return max(d1, d2), random.choice(tuple(allowed_ops)).latex.format(
             fst, snd)
@@ -98,8 +98,8 @@ class ExprSampler:
                 ), bop.latex.format(s1, s2), bop.opcode
             else:
                 c = '1,0,0'
-                d, s = self.single(d)
-                if d != 1:
+                deep_acc, s = self.single(d)
+                if deep_acc != 1:
                     uop = random.choice(tuple(self._ops.unary()))
                 else:
                     uop = self._ops.leaf()
@@ -124,7 +124,7 @@ if __name__ == '__main__':
     parser.add_argument('--deeper-chance', help='Chance to go deeper with generating.',
                         required=False, type=float, default=0.7)
     cmd_args = parser.parse_args()
-
+    print(cmd_args)
     with open(cmd_args.ops_cfg, 'r') as ops_cfg_file:
         ops_config = json.load(ops_cfg_file)
 
