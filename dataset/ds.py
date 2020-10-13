@@ -48,7 +48,7 @@ class Operators:
     def __init__(self, ops: set):
         self.all = ops
         self._binary = set(filter(lambda x: x.operands == 2, self.all))
-        self._inline_binary = set(filter(Operator.is_inline, self.binary()))
+        self._inline = set(filter(Operator.is_inline, self.all))
         self._unary = set(filter(lambda x: x.operands == 1, self.all))
         self._leaf = list(filter(lambda x: x.operands == 0, self.all))[0]
 
@@ -60,8 +60,8 @@ class Operators:
     def binary(self):
         return self._binary
 
-    def inline_binary(self):
-        return self._inline_binary
+    def inline(self):
+        return self._inline
 
     def unary(self):
         return self._unary
@@ -80,18 +80,18 @@ class ExprSampler:
 
         allowed_ops = self._ops.all if not forbidden_ops else \
             self._ops.all - forbidden_ops
-
         (d1, fst), (d2, snd) = self.single(depth-1, deep_acc+1), self.single(depth-1, deep_acc+1)
-
-        return max(d1, d2), random.choice(tuple(allowed_ops)).latex.format(
+        op = random.choice(list(allowed_ops))
+        res = op.latex.format(
             fst, snd)
+        return max(d1, d2), res
 
     def sample(self, k, d):
         for _ in range(k):
             if randbool(0.7):
                 c1, c2 = '1,0,0', '0,0,1'
                 (d1, s1), (d2, s2) = self.single(
-                    d, forbidden_ops=self._ops.inline_binary()), self.single(d)
+                    d, forbidden_ops=self._ops.inline()), self.single(d)
                 deep_acc = max(d1,d2)
                 bop = random.choice(tuple(self._ops.binary()))
                 yield bop.latex.format(

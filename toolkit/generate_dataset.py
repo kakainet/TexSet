@@ -150,7 +150,11 @@ def merge_annotations():
         json_data[idx]['op'] = operators[idx]
         json_data[idx]['depth'] = int(depths[idx])
 
-    json_out = json.dumps(json_data)
+        if labels[idx] == 'frac':
+            json_data[idx]['exprs']=sorted(json_data[idx]['exprs'], key=lambda box: box[1])
+
+
+    json_out = json.dumps(json_data,  indent=4)
 
     with open(os.path.join(result_dir, 'annotations.json'), 'w+') as annots:
         annots.write(json_out)

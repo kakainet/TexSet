@@ -9,6 +9,26 @@
     "operands": 2,
     "inline": true
   },
+  "times": {
+    "latex": "{0} \\times {1}",
+    "operands": 2,
+    "inline": true
+  },
+  "star": {
+    "latex": "{0} \\star {1}",
+    "operands": 2,
+    "inline": true
+  },
+  "div": {
+    "latex": "{0} \\div {1}",
+    "operands": 2,
+    "inline": true
+  },
+  "otimes": {
+    "latex": "{0} \\otimes {1}",
+    "operands": 2,
+    "inline": true
+  },
   "sub": {
     "latex": "{0}-{1}",
     "operands": 2,
@@ -28,15 +48,15 @@
     "operands": 1
   },
   "int": {
-    "latex": "\\int {0}",
+    "latex": "\\int \\left( {0} \\right)",
     "operands": 1
   },
   "sum": {
-    "latex": "\\sum {0}",
+    "latex": "\\sum \\left( {0} \\right)",
     "operands": 1
   },
   "pi": {
-    "latex": "\\prod {0}",
+    "latex": "\\prod \\left( {0} \\right)",
     "operands": 1
   },
   "par": {
