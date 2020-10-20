@@ -75,36 +75,41 @@ class ExprSampler:
         self._ops = ops
 
     def single(self, depth, deep_acc=1, forbidden_ops=None):
-        if randbool(1-deeper_chance) or depth == 1:
+        if randbool(1-deeper_chance) or depth <= deep_acc:
             return deep_acc, atom()
 
         allowed_ops = self._ops.all if not forbidden_ops else \
             self._ops.all - forbidden_ops
-        (d1, fst), (d2, snd) = self.single(depth-1, deep_acc+1), self.single(depth-1, deep_acc+1)
+        (d1, fst), (d2, snd) = self.single(depth, deep_acc+1), self.single(depth, deep_acc+1)
         op = random.choice(list(allowed_ops))
         res = op.latex.format(
             fst, snd)
         return max(d1, d2), res
 
     def sample(self, k, d):
-        for _ in range(k):
-            if randbool(0.7):
-                c1, c2 = '1,0,0', '0,0,1'
-                (d1, s1), (d2, s2) = self.single(
-                    d, forbidden_ops=self._ops.inline()), self.single(d)
-                deep_acc = max(d1,d2)
-                bop = random.choice(tuple(self._ops.binary()))
-                yield bop.latex.format(
-                    color_expr(s1, c1), color_expr(s2, c2)
-                ), bop.latex.format(s1, s2), bop.opcode, deep_acc
-            else:
-                c = '1,0,0'
-                deep_acc, s = self.single(d)
-                if deep_acc != 1:
-                    uop = random.choice(tuple(self._ops.unary()))
+        if d == 1:
+            c = '1,0,0'
+            for _ in range(k):
+                uop = self._ops.leaf()
+                _, s = self.single(d, deep_acc=2)
+                yield uop.latex.format(color_expr(s, c)), uop.latex.format(s, c), uop.opcode, d
+        else:
+            d-=1 # mapping
+            for _ in range(k):
+                if randbool(0.7):
+                    c1, c2 = '1,0,0', '0,0,1'
+                    (d1, s1), (d2, s2) = self.single(
+                        d, forbidden_ops=self._ops.inline()), self.single(d)
+                    deep_acc = max(d1,d2)
+                    bop = random.choice(tuple(self._ops.binary()))
+                    yield bop.latex.format(
+                        color_expr(s1, c1), color_expr(s2, c2)
+                    ), bop.latex.format(s1, s2), bop.opcode, deep_acc
                 else:
-                    uop = self._ops.leaf()
-                yield uop.latex.format(color_expr(s, c)), uop.latex.format(s, c), uop.opcode, deep_acc
+                    c = '1,0,0'
+                    deep_acc, s = self.single(d)
+                    uop = random.choice(tuple(self._ops.unary()))
+                    yield uop.latex.format(color_expr(s, c)), uop.latex.format(s, c), uop.opcode, deep_acc
 
 
 
