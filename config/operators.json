@@ -5,7 +5,7 @@
     "inline": true
   },
   "add": {
-    "latex": "{0}+{1}",
+    "latex": "{0} + {1}",
     "operands": 2,
     "inline": true
   },
@@ -30,7 +30,7 @@
     "inline": true
   },
   "sub": {
-    "latex": "{0}-{1}",
+    "latex": "{0} - {1}",
     "operands": 2,
     "inline": true
   },
@@ -40,11 +40,11 @@
     "inline": true
   },
   "frac": {
-    "latex": "\\frac{{ {0} }}{{ {1} }}",
+    "latex": "\\frac {{ {0} }} {{ {1} }}",
     "operands": 2
   },
   "sqrt": {
-    "latex": "\\sqrt{{ {0} }}",
+    "latex": "\\sqrt {{ {0} }}",
     "operands": 1
   },
   "int": {
